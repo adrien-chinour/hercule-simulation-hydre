@@ -1,0 +1,5 @@
+ToDo for 12/12 :
+-> height : hydra -> int (Louis-Gabriel)
+-> histogram : hydra -> int list (Camille)
+-> histogram_heads : hydra -> int list (Adrien)
+
