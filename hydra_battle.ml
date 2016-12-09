@@ -55,27 +55,29 @@ let example_deep_two_copies =
 
 (* Écrire une fonction donnant la taille d'une hydre (nombre total de noeuds) *)
 let rec size : hydra -> int = fun h ->
-  failwith "A écrire"
+  match h with
+  | Node [] -> 1
+  | Node (x::h') -> 1 + size (Node h')
 
 (* Écrire une fonction donnant la hauteur d'une hydre (longueur maximale d'un  chemin partant du pied) *)
 let rec height : hydra -> int = fun h ->
-  failwith "A écrire"
+  failwith "Echec du calcul de la hauteur de l'hydre."
 
 (* Écrire une fonction qui calcule l'histogramme d'une hydre, nombre de noeuds à chaque niveau *)
 
 let histogram : hydra -> int list = fun h ->
-  failwith "A écrire"
+  failwith "Echec du calcul de l'histogramme de l'hydre."
 
 (* Écrire une fonction qui compte le nombre de têtes à chaque niveau. *)
 let histogram_heads : hydra -> int list = fun h ->
-  failwith "A écrire"
+  failwith "Echec du calcul du nombre de tete de chaque niveau de l'hydre."
 
 (*
    Écrire une fonction qui retourne une liste triée d'arêtes de l'hydre, avec 
    les contraintes décrites dans le sujet.
 *)
 let hydra_edges : hydra -> (int * int) list = fun h ->
-  failwith "A écrire"
+  failwith "Erreur du calcul des aretes de l'hydre."
 
 (*
    Affiche une hydre h.
