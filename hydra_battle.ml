@@ -57,7 +57,7 @@ let example_deep_two_copies =
 let rec size : hydra -> int = fun h ->
   match h with
   | Node [] -> 1
-  | Node (x::h') -> 1 + size (Node h')
+  | Node (x::h') -> size (x) + size(Node(h'))
 
 (* Écrire une fonction donnant la hauteur d'une hydre (longueur maximale d'un  chemin partant du pied) *)
 let rec height : hydra -> int = fun h ->
