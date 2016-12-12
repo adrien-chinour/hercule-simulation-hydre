@@ -225,7 +225,7 @@ type hercules_strat =  hydra -> path
 let rec sub_hydra : path -> hydra -> hydra = fun path h ->
   match path with
   |[]-> h
-  |x::path1-> sub_hydra path1 (List.nth (les_filles_des_filles h) x)
+  |x::path1-> sub_hydra path1 (List.nth (les_filles h) x)
 
 
 (* Écrire la fonction suivante qui teste si une stratégie choisit bien une tête  *)
@@ -235,7 +235,10 @@ let check_hercules_strategy : hercules_strat -> hydra -> bool = fun strat  h  ->
 
 (* Écrire la stratégie choisissant la tête la plus à gauche *)
 let leftmost_head_strat : hercules_strat = fun  h  ->
-  failwith "A écrire"
+  let rec aux h acc = match h with
+    |Node [] -> acc
+    |_-> aux (List.nth (les_filles h) 0) (0::acc)
+  in aux h []
 
 (* Écrire la stratégie choisissant une tête de hauteur maximale *)
 let highest_head_strat : hercules_strat = fun h ->
@@ -298,3 +301,8 @@ let make_trace : (hydra -> 'a) -> genre_de_bataille -> hydra -> time -> 'a list 
 let test_size = ((size example_hydra) = 10) && (size baby_hydra = 2);;
 
 test_size;;
+
+let test_leftmost_head_strat = check_hercules_strategy leftmost_head_strat example_hydra;;
+test_leftmost_head_strat;;
+
+
