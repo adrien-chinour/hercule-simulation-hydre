@@ -67,8 +67,12 @@ let rec size : hydra -> int = fun h ->
   | Node (x::h') -> size x + size (Node h')
 
 (* Écrire une fonction donnant la hauteur d'une hydre (longueur maximale d'un  chemin partant du pied) *)
-let rec height : hydra -> int = fun h ->
-  failwith "Echec du calcul de la hauteur de l'hydre."
+let height : hydra -> int = fun h ->
+  let rec aux h acc =
+    match les_filles h with
+    | [] -> acc
+    | _ -> aux (Node (les_filles_des_filles h)) (acc + 1)
+  in aux h 0
 
 (* Écrire une fonction qui calcule l'histogramme d'une hydre, nombre de noeuds à chaque niveau *)
 let histogram : hydra -> int list = fun h ->
@@ -89,7 +93,13 @@ let histogram_heads : hydra -> int list = fun h ->
    les contraintes décrites dans le sujet.
 *)
 let hydra_edges : hydra -> (int * int) list = fun h ->
-  failwith "Erreur du calcul des aretes de l'hydre."
+   let rec aux h h' acc next k = match (les_filles h') with
+    | [] ->
+      if (les_filles_des_filles h) = []
+      then acc
+      else aux (Node (les_filles_des_filles h)) (Node (les_filles_des_filles h))  acc (next + 1) (next)
+    | (x::y) -> aux h (Node y) ((k,next)::acc) (next + 1) k
+  in aux h h [] 1 0
 
 (*
    Affiche une hydre h.
