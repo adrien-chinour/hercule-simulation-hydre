@@ -231,7 +231,6 @@ let rec sub_hydra : path -> hydra -> hydra = fun path h ->
 (* Écrire la fonction suivante qui teste si une stratégie choisit bien une tête  *)
 let check_hercules_strategy : hercules_strat -> hydra -> bool = fun strat  h  ->
   (sub_hydra (strat h) h = head)
-  
 
 (* Écrire la stratégie choisissant la tête la plus à gauche *)
 let leftmost_head_strat : hercules_strat = fun  h  ->
@@ -239,18 +238,24 @@ let leftmost_head_strat : hercules_strat = fun  h  ->
     |Node [] -> acc
     |_-> aux (List.nth (les_filles h) 0) (0::acc)
   in aux h []
-
+       
 (* Écrire la stratégie choisissant une tête de hauteur maximale *)
 let highest_head_strat : hercules_strat = fun h ->
-  failwith "A écrire"
+  failwith ""
 
 (* Écrire une stratégie visant à choisir une tête le plus près du sol possible *)
 let closest_to_ground_strat : hercules_strat = fun h  ->
+  (*let rec aux h acc = *)
   failwith "A écrire"
 
 (* En apprenant à utiliser la bibliothèque Random, écrire une stratégie pour choisir une tête au hasard *)
+
 let random_strat : hercules_strat = fun h ->
-  failwith "A écrire"
+  let rec aux h acc dir= match h with
+    |Node [] -> acc
+    |_-> aux (List.nth (les_filles h) dir) (dir::acc) (Random.int (List.length(les_filles h)))
+  in aux h [] (Random.int (List.length(les_filles h)))
+  
 
 (* Étant donnée une date, l'Hydre peut calculer un nombre de réplications >= 1 *)
 
@@ -299,10 +304,12 @@ let make_trace : (hydra -> 'a) -> genre_de_bataille -> hydra -> time -> 'a list 
 (* Écrire ici vos tests *)
 
 let test_size = ((size example_hydra) = 10) && (size baby_hydra = 2);;
-
 test_size;;
+
+let test_height = ((height example_hydra) = 4);;
+test_height;;
 
 let test_leftmost_head_strat = check_hercules_strategy leftmost_head_strat example_hydra;;
 test_leftmost_head_strat;;
 
-
+let test_random_head_strat = check_hercules_strategy random_strat example_hydra;;
