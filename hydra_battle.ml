@@ -223,10 +223,14 @@ type hercules_strat =  hydra -> path
 *)
 
 let rec sub_hydra : path -> hydra -> hydra = fun path h ->
-  failwith "A écrire"
+  match path with
+  |[]-> h
+  |x::path1-> sub_hydra path1 (List.nth (les_filles_des_filles h) x)
+
 
 (* Écrire la fonction suivante qui teste si une stratégie choisit bien une tête  *)
 let check_hercules_strategy : hercules_strat -> hydra -> bool = fun strat  h  ->
+  
   failwith "A écrire"
 
 (* Écrire la stratégie choisissant la tête la plus à gauche *)
@@ -291,3 +295,6 @@ let make_trace : (hydra -> 'a) -> genre_de_bataille -> hydra -> time -> 'a list 
 
 (* Écrire ici vos tests *)
 
+let test_size = ((size example_hydra) = 10) && (size baby_hydra = 2);;
+
+test_size;;
