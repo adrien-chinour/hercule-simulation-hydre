@@ -91,14 +91,32 @@ let histogram_heads : hydra -> int list = fun h ->
    Écrire une fonction qui retourne une liste triée d'arêtes de l'hydre, avec
    les contraintes décrites dans le sujet.
 *)
-let hydra_edges : hydra -> (int * int) list = fun h ->
-   let rec aux h h' acc next k = match (les_filles h') with
+let tuple_hydra_int : hydra -> (hydra * int) list = fun h ->
+  let rec aux l h h' k =
+    match les_filles h' with
     | [] ->
-      if (les_filles_des_filles h) = []
+      if les_filles_des_filles h = []
+      then l
+      else aux l (Node (les_filles_des_filles h)) (Node (les_filles_des_filles h)) k
+    | (x::t) ->
+      if is_head x
+      then aux l h (Node t) (k + 1)
+      else aux (l@[(x,k)]) h (Node t) (k + 1)
+  in aux [] h h 1
+
+let hydra_edges : hydra -> (int * int) list = fun h ->
+  let rec aux h h' l next k acc =
+    match les_filles h with
+    | [] ->
+      if les_filles_des_filles h' = []
       then acc
-      else aux (Node (les_filles_des_filles h)) (Node (les_filles_des_filles h))  acc (next + 1) (next)
-    | (x::y) -> aux h (Node y) ((k,next)::acc) (next + 1) k
-  in aux h h [] 1 0
+      else (
+        match l with
+        | ((x,y)::l') -> aux x x l' next y acc
+        | [] -> acc
+      )
+    | (x::y) -> aux (Node y) h' l (next + 1) k ((k,next)::acc)
+  in List.rev(aux h h (tuple_hydra_int h) 1 0 [])
 
 (*
    Affiche une hydre h.
