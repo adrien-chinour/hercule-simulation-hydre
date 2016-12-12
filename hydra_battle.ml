@@ -26,6 +26,13 @@ let trisame h = tri h h h
 (* Liste des filles d'un nœud *)
 let les_filles (Node hs) = hs
 
+(* Liste des filles des filles d'un noeud (Ajouté par Adrien) *)
+let les_filles_des_filles h =
+  let rec aux (l : hydra list) acc = match l with
+    | [] -> acc
+    | (h::t) -> aux t (les_filles h)@acc
+  in aux (les_filles h) []
+
 (* Exemples d'hydres *)
 
 let baby_hydra = single head
@@ -57,23 +64,28 @@ let example_deep_two_copies =
 let rec size : hydra -> int = fun h ->
   match h with
   | Node [] -> 1
-  | Node (x::h') -> size (x) + size(Node(h'))
+  | Node (x::h') -> size x + size (Node h')
 
 (* Écrire une fonction donnant la hauteur d'une hydre (longueur maximale d'un  chemin partant du pied) *)
 let rec height : hydra -> int = fun h ->
   failwith "Echec du calcul de la hauteur de l'hydre."
 
 (* Écrire une fonction qui calcule l'histogramme d'une hydre, nombre de noeuds à chaque niveau *)
-
 let histogram : hydra -> int list = fun h ->
-  failwith "Echec du calcul de l'histogramme de l'hydre."
+  let rec aux h acc = match h with
+    | Node [] -> acc
+    | _ -> aux (Node (les_filles_des_filles h)) (List.length(les_filles h)::acc)
+  in List.rev( aux h [1])
 
 (* Écrire une fonction qui compte le nombre de têtes à chaque niveau. *)
 let histogram_heads : hydra -> int list = fun h ->
-  failwith "Echec du calcul du nombre de tete de chaque niveau de l'hydre."
+  let rec aux h acc = match h with
+    | Node [] -> acc
+    | _ -> aux (Node (les_filles_des_filles h)) (List.length(List.filter is_head (les_filles h))::acc)
+  in List.rev( aux h [0] )
 
 (*
-   Écrire une fonction qui retourne une liste triée d'arêtes de l'hydre, avec 
+   Écrire une fonction qui retourne une liste triée d'arêtes de l'hydre, avec
    les contraintes décrites dans le sujet.
 *)
 let hydra_edges : hydra -> (int * int) list = fun h ->
@@ -85,7 +97,7 @@ let hydra_edges : hydra -> (int * int) list = fun h ->
 *)
 let show_hydra h =
   (* Translates the list of edges in dot format, and outputs it to filename *)
-  let hydra_to_dot h filename =    
+  let hydra_to_dot h filename =
     let rec edges_to_dot edges channel =
       match edges with
         [] -> ()
@@ -115,7 +127,7 @@ let show_hydra h =
   let viewer = let uname = uname() in
     if uname = "Linux" then " display "
     else if uname = "Darwin" then " open "
-    else failwith "Viewer not set under windows" in 
+    else failwith "Viewer not set under windows" in
   (* Set style to view hydra's heads *)
   let style = "{style=\"invisible\",$.shape=\"none\",height=0.2,width=0.2,image=\"head.png\",label=\"\"}" in
   (* Prepare command *)
@@ -153,7 +165,7 @@ let rec remove_head i hs =
   | i, h::hs' when i> 0 -> h :: remove_head (i-1) hs'
   |  _,_  -> failwith the_msg
 
-(* Un tour de base : 
+(* Un tour de base :
    - Hercule coupe une tête de l'Hydre h donnée par le chemin p.
    - L'Hydre se réplique n fois.
 *)
@@ -257,8 +269,9 @@ let simulation : genre_de_bataille -> hydra -> time -> result =
   failwith "A écrire"
 
 (*
-   Écrire une fonction make_trace telle que make_trace measure bat h_init (Time t) donne la suite 
-   des valeurs de la fonction measure sur les hydres obtenues en partant de l'hydre h_init et 
+   Écrire une fonction make_trace telle que make_trace measure bat h_init (Time t) donne la suite
+
+   des valeurs de la fonction measure sur les hydres obtenues en partant de l'hydre h_init et
    en effectuant t tours de la bataille de genre bat.
 *)
 
@@ -267,3 +280,4 @@ let make_trace : (hydra -> 'a) -> genre_de_bataille -> hydra -> time -> 'a list 
   failwith "A écrire"
 
 (* Écrire ici vos tests *)
+
