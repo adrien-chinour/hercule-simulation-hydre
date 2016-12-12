@@ -262,7 +262,6 @@ let highest_head_strat : hercules_strat = fun h ->
 
 (* Écrire une stratégie visant à choisir une tête le plus près du sol possible *)
 let closest_to_ground_strat : hercules_strat = fun h  ->
-  (*let rec aux h acc = *)
   failwith "A écrire"
 
 (* En apprenant à utiliser la bibliothèque Random, écrire une stratégie pour choisir une tête au hasard *)
@@ -270,7 +269,7 @@ let closest_to_ground_strat : hercules_strat = fun h  ->
 let random_strat : hercules_strat = fun h ->
   let rec aux h acc dir= match h with
     |Node [] -> acc
-    |_-> if ((List.length(les_filles(List.nth (les_filles h) dir ))) != 0) then aux (List.nth (les_filles h) dir) (dir::acc) (Random.int (List.length(les_filles(List.nth (les_filles h) dir )))) else  aux (List.nth (les_filles h) dir) (dir::acc) 0
+    |_-> if ((List.length(les_filles(List.nth (les_filles h) dir ))) > 2) then aux (List.nth (les_filles h) dir) (dir::acc) (Random.int (List.length(les_filles(List.nth (les_filles h) dir )))) else  aux (List.nth (les_filles h) dir) (dir::acc) 0
   in aux h [] (Random.int (List.length(les_filles h)))
   
 
@@ -330,3 +329,4 @@ let test_leftmost_head_strat = check_hercules_strategy leftmost_head_strat examp
 test_leftmost_head_strat;;
 
 let test_random_head_strat = check_hercules_strategy random_strat example_hydra;;
+test_random_head_strat;;
