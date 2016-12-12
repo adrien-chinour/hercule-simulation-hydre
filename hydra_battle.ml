@@ -230,8 +230,8 @@ let rec sub_hydra : path -> hydra -> hydra = fun path h ->
 
 (* Écrire la fonction suivante qui teste si une stratégie choisit bien une tête  *)
 let check_hercules_strategy : hercules_strat -> hydra -> bool = fun strat  h  ->
+  (sub_hydra (strat h) h = head)
   
-  failwith "A écrire"
 
 (* Écrire la stratégie choisissant la tête la plus à gauche *)
 let leftmost_head_strat : hercules_strat = fun  h  ->
