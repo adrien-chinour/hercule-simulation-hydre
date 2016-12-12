@@ -1,5 +1,4 @@
 (** Hydra Battles *)
-
 (* Message utilisé lorsqu'un bug est détecté – par exemple, dans les fonctions de réplication *)
 
 let the_msg = "ouah, le bug!"
@@ -253,7 +252,7 @@ let closest_to_ground_strat : hercules_strat = fun h  ->
 let random_strat : hercules_strat = fun h ->
   let rec aux h acc dir= match h with
     |Node [] -> acc
-    |_-> aux (List.nth (les_filles h) dir) (dir::acc) (Random.int (List.length(les_filles h)))
+    |_-> if ((List.length(les_filles(List.nth (les_filles h) dir ))) != 0) then aux (List.nth (les_filles h) dir) (dir::acc) (Random.int (List.length(les_filles(List.nth (les_filles h) dir )))) else  aux (List.nth (les_filles h) dir) (dir::acc) 0
   in aux h [] (Random.int (List.length(les_filles h)))
   
 
