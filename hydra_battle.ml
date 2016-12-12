@@ -255,6 +255,27 @@ let leftmost_head_strat : hercules_strat = fun  h  ->
     |Node [] -> acc
     |_-> aux (List.nth (les_filles h) 0) (0::acc)
   in aux h []
+
+(* Soit x le nombre de chemins accessibles à partir d'un noeud quelconque.
+la fonction prend k chemins parmi x, ce qui signifie que si l'on a n noeuds
+a visiter afin d'obtenir la tête la plus à gauche, k*n têtes seront vues.
+si aucun chemin n'est accessible, la fonction renvoie la liste contenant les k*n têtes.
+
+On considère une suite u(n) où u(n) est le nombre de têtes vue au bout de n parcours.
+La tête suivante est u(n+1) = u(n)+k, d'où u(n+1)-u(n) = k.
+La suite est alors arithmétique de raison k, alors u(n) = u(0)+n*k, avec :
+> u(0) = 0, car dans ce cas aucune tête n'est vue (on est au pied de l'hydre)
+> k = 1, car si une tête est vue, ses voisines ne le sont pas : il est imposible d'accéder
+à une tête voisine sans passer par le noeud qui la précède, une seule tête est vue
+On cherche donc à montrer par récurrence u(n) = 0+n*1 = n pour tout n>=1.
+
+> initialisation: pour n=1, u(n)=1 vrai au premier rang
+> hérédité: On suppose que la propriété est toujours vraie au rang suivant.
+u(n+1) = u(0)+(n+1)*k = n+1 vrai au rang suivant
+
+La propriété est vraie au premier rang, est héréditaire et la fonction remplie bien son rôle
+
+complexité: O(n) car la fonction fait un parcours complet des tête à gauche pour n têtes*)
        
 (* Écrire la stratégie choisissant une tête de hauteur maximale *)
 let highest_head_strat : hercules_strat = fun h ->
