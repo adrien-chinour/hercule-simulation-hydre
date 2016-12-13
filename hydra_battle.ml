@@ -414,3 +414,12 @@ test_highest_head_strat;;
 
 let test_closest_to_ground_strat =(check_hercules_strategy closest_to_ground_strat example_hydra) && (check_hercules_strategy closest_to_ground_strat goodstein_hydra);;
 test_closest_to_ground_strat;;
+
+
+let random_nodes sizereq=
+  let rec aux acc s rand =
+    if(s>3) then if((Random.bool()) && (s>(rand+1)) && (rand>2)) then aux ((aux [] rand ((Random.int(rand-1))+1))::acc) (s-rand) ((Random.int(s-rand-1))+1) else aux (Node[]::acc) (s-1) ((Random.int(s-2))+1) else Node(acc)
+  in aux [] sizereq ((Random.int(sizereq-1))+1);;
+
+let _=show_hydra(random_nodes 30);;
+let _=size (random_nodes 30);;
