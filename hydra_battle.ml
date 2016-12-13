@@ -372,3 +372,9 @@ test_leftmost_head_strat;;
 
 let test_random_head_strat = check_hercules_strategy random_strat example_hydra;;
 test_random_head_strat;;
+
+let test_highest_head_strat = (check_hercules_strategy highest_head_strat example_hydra) && (check_hercules_strategy highest_head_strat goodstein_hydra);;
+test_highest_head_strat;;
+
+let test_closest_to_ground_strat =(check_hercules_strategy closest_to_ground_strat example_hydra) && (check_hercules_strategy closest_to_ground_strat goodstein_hydra);;
+test_closest_to_ground_strat;;
