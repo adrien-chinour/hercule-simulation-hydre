@@ -86,7 +86,7 @@ let histogram_heads : hydra -> int list = fun h ->
     | Node [] -> acc
     | _ -> aux (Node (les_filles_des_filles h)) (List.length(List.filter is_head (les_filles h))::acc)
   in List.rev( aux h [0] )
-    
+
 (*
    Écrire une fonction qui retourne une liste triée d'arêtes de l'hydre, avec
    les contraintes décrites dans le sujet.
@@ -286,16 +286,25 @@ let path_from : int -> hydra -> int list = fun n h ->
       match List.find (fun (x,y) -> y = acc) l with
       | (x,y) -> aux l x (x::path)
   in aux (hydra_edges h) n [n]
-    
-let dir_from_path : int list -> path = fun l ->
+
+let first_fille : int -> hydra -> int = fun k h ->
+  let rec aux l =
+    match List.hd l with
+    |(x,y) -> if x = k then y else aux (List.tl l)
+  in aux (hydra_edges h)
+
+let dir_from_path : int list -> hydra -> path = fun l h->
   let rec aux l acc =
     match l with
+    | (x::y) ->
+      if y = []
+      then acc
+      else aux (List.tl l) (((List.hd y) - (first_fille x h))::acc)
     | [] -> acc
-    | (x::y) -> if y = [] then acc else aux y (((List.hd y) - x - 1)::acc) 
   in aux l []
 
 (* Écrire la stratégie choisissant une tête de hauteur maximale *)
-let highest_head_strat : hercules_strat = fun h -> (List.rev (dir_from_path (path_from ((size h) - 1) h)))
+let highest_head_strat : hercules_strat = fun h -> (List.rev (dir_from_path (path_from ((size h) - 1) h) h))
 
 (* Écrire une stratégie visant à choisir une tête le plus près du sol possible *)
 let closest_to_ground_strat : hercules_strat = fun h ->
@@ -303,8 +312,8 @@ let closest_to_ground_strat : hercules_strat = fun h ->
     match l with
     | [] -> acc
     | ((x,y)::l') -> if y = acc then aux (acc + 1) l' else acc
-  in List.rev (dir_from_path (path_from (aux 1 (tuple_hydra_int h)) h)) 
-    
+  in List.rev (dir_from_path (path_from (aux 1 (tuple_hydra_int h)) h) h)
+
 
 (* En apprenant à utiliser la bibliothèque Random, écrire une stratégie pour choisir une tête au hasard *)
 
@@ -313,7 +322,7 @@ let random_strat : hercules_strat = fun h ->
     |Node [] -> acc
     |_-> if ((List.length(les_filles(List.nth (les_filles h) dir ))) > 2) then aux (List.nth (les_filles h) dir) (dir::acc) (Random.int (List.length(les_filles(List.nth (les_filles h) dir )))) else  aux (List.nth (les_filles h) dir) (dir::acc) 0
   in aux h [] (Random.int (List.length(les_filles h)))
-  
+
 
 (* Étant donnée une date, l'Hydre peut calculer un nombre de réplications >= 1 *)
 
