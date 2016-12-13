@@ -368,6 +368,33 @@ let make_trace : (hydra -> 'a) -> genre_de_bataille -> hydra -> time -> 'a list 
   fun measure (Battle_kind(replication,hercules_strat, hydra_strat)) initial_hydra (Time duration) ->
   failwith "A écrire"
 
+
+(* Extensions *)
+
+(* prouver qu'une stratégie d'hercule marche bien *)
+
+(* comparaison de 2 hydres *)
+
+(* fonction annexe qui compare 2 histogrammes *)
+let rec check_histogram l1 l2 =
+  if (List.length l1) = (List.length l2)
+  then
+    if (l1 = [])
+    then true
+    else
+      if (List.hd l1) = (List.hd l2)
+      then check_histogram (List.tl l1) (List.tl l2)
+      else false
+  else false                           
+
+(* ATTENTION: COMPARISON A FINIR (extension n°2)
+let comparison h1 h2 =
+  let rec aux h1 h2 acc = match h1 with
+    | Node [] -> acc
+    | x::h1' -> aux (List.nth (les_filles h1) x) (List.nth (les_filles h2) x) acc
+  in aux x y acc
+ *)
+         
 (* Écrire ici vos tests *)
 
 let test_size = ((size example_hydra) = 10) && (size baby_hydra = 2);;
