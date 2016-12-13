@@ -86,7 +86,7 @@ let histogram_heads : hydra -> int list = fun h ->
     | Node [] -> acc
     | _ -> aux (Node (les_filles_des_filles h)) (List.length(List.filter is_head (les_filles h))::acc)
   in List.rev( aux h [0] )
-
+    
 (*
    Écrire une fonction qui retourne une liste triée d'arêtes de l'hydre, avec
    les contraintes décrites dans le sujet.
@@ -276,14 +276,35 @@ u(n+1) = u(0)+(n+1)*k = n+1 vrai au rang suivant
 La propriété est vraie au premier rang, est héréditaire et la fonction remplie bien son rôle
 
 complexité: O(n) car la fonction fait un parcours complet des tête à gauche pour n têtes*)
-       
+
+(* Fonction utile pour stratégie tête de hauteur max / min *)
+let path_from : int -> hydra -> int list = fun n h ->
+  let rec aux l acc path =
+    if acc = 0
+    then path
+    else
+      match List.find (fun (x,y) -> y = acc) l with
+      | (x,y) -> aux l x (x::path)
+  in aux (hydra_edges h) n [n]
+    
+let dir_from_path : int list -> path = fun l ->
+  let rec aux l acc =
+    match l with
+    | [] -> acc
+    | (x::y) -> if y = [] then acc else aux y (((List.hd y) - x - 1)::acc) 
+  in aux l []
+
 (* Écrire la stratégie choisissant une tête de hauteur maximale *)
-let highest_head_strat : hercules_strat = fun h ->
-  failwith ""
+let highest_head_strat : hercules_strat = fun h -> (List.rev (dir_from_path (path_from ((size h) - 1) h)))
 
 (* Écrire une stratégie visant à choisir une tête le plus près du sol possible *)
-let closest_to_ground_strat : hercules_strat = fun h  ->
-  failwith "A écrire"
+let closest_to_ground_strat : hercules_strat = fun h ->
+  let rec aux acc l =
+    match l with
+    | [] -> acc
+    | ((x,y)::l') -> if y = acc then aux (acc + 1) l' else acc
+  in List.rev (dir_from_path (path_from (aux 1 (tuple_hydra_int h)) h)) 
+    
 
 (* En apprenant à utiliser la bibliothèque Random, écrire une stratégie pour choisir une tête au hasard *)
 
