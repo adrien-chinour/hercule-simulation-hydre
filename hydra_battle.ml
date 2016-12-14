@@ -386,16 +386,16 @@ let make_trace : (hydra -> 'a) -> genre_de_bataille -> hydra -> time -> 'a list 
 (* comparaison de 2 hydres *)
 
 (* fonction annexe qui compare 2 histogrammes *)
+
+
 let rec check_histogram l1 l2 =
-  if (List.length l1) = (List.length l2)
-  then
-    if (l1 = [])
-    then true
-    else
-      if (List.hd l1) = (List.hd l2)
-      then check_histogram (List.tl l1) (List.tl l2)
-      else false
-  else false
+  match l1 with
+  |[]->(match l2 with
+    |[]->true
+    |_->false)
+  |x::tl1->(match l2 with
+    |[]->false
+    |y::tl2->if (x=y) then check_histogram tl1 tl2 else false)
 
 (* ATTENTION: COMPARISON A FINIR (extension n°2)
 let comparison h1 h2 =
@@ -430,6 +430,7 @@ let goodstein_hydra_time = Node[Node []; Node []; Node [Node []; Node []]; Node 
 
 (* Extension random *)
 
+
 let random_nodes sizereq=
   let rec aux acc s rand =
     if(s>3) then if((Random.bool()) && (s>(rand+1)) && (rand>2)) then aux ((aux [] rand ((Random.int(rand-1))+1))::acc) (s-rand) ((Random.int(s-rand-1))+1) else aux (Node[]::acc) (s-1) ((Random.int(s-2))+1) else Node(acc)
@@ -447,15 +448,16 @@ let random_nodes_new sizereq=
     else Node(acc)
   in aux [] sizereq ((Random.int(sizereq))+1);;
 
-(*let _=show_hydra(random_nodes 30);;*)
-(*let _=size (random_nodes_new 30);;*)
-(*let _=show_hydra (random_nodes_new 10);;*)
+(*let _=show_hydra(random_nodes 30);;
+  let _=size (random_nodes_new 30);;*)
+(*let _=show_hydra (random_nodes_new 10);;
 
 
 
-(*let check_path =
-  let aux h= [(check_hercules_strategy random_strat h),(h),(size h)]
+let check_path =
+  let aux h= [(random_strat h),(h),(size h)]
   in aux (random_nodes_new 20)
 
 let _=check_path;;
+
 *)
