@@ -395,16 +395,21 @@ let make_trace : (hydra -> 'a) -> genre_de_bataille -> hydra -> time -> 'a list 
     in aux initial_hydra (Time(0)) []
 
 
+
 (* Extensions *)
 
 (* prouver qu'une stratégie d'hercule marche bien *)
 
 (* comparaison de 2 hydres *)
 
+(*Pour comparer deux hydres il faut que leur histogrammes soient les mêmes à chaque embranchement,
+pour cela on prend une branche depuis la racine de la première hydre et on cherche une branche depuis la racine
+de la deuxième hydre qui a le même histogramme et on répète le même processus pour toutes les branches *)
+
+
 (* fonction annexe qui compare 2 histogrammes *)
 
-
-let rec check_histogram l1 l2 =
+let rec check_histogram :int list-> int list-> bool =fun l1 l2 ->
   match l1 with
   |[]->(match l2 with
     |[]->true
@@ -413,13 +418,27 @@ let rec check_histogram l1 l2 =
     |[]->false
     |y::tl2->if (x=y) then check_histogram tl1 tl2 else false)
 
-(* ATTENTION: COMPARISON A FINIR (extension n°2)
-let comparison h1 h2 =
-  let rec aux h1 h2 acc = match h1 with
-    | Node [] -> acc
-    | x::h1' -> aux (List.nth (les_filles h1) x) (List.nth (les_filles h2) x) acc
-  in aux x y acc
+(*trouve une branche équivalente*)
+let find :hydra -> int list -> int =fun h l1 ->
+  let rec aux n=
+    if(check_histogram l1 (histogram ((List.nth(les_filles h) n)))) then n  else if (n<List.length(les_filles h)) then  aux (n+1) else 0
+in aux 0
+
+
+(*let comparison :hydra-> hydra -> bool =fun hp hs ->
+  let rec aux h1 h2 c1 c2  =
+    match h1 with
+    |Node[]->true
+    |_-> if(c1<(List.length (les_filles h1))) then
+        if(check_histogram (histogram h1) (histogram h2)) then
+          if (aux (List.nth (les_filles h1) c1) (List.nth (les_filles h2) (find h2 (histogram(h1)))) 0 ) then
+            aux h1 h2 (c1+1) (find h2 )
+          else false
+        else false
+      else false
+  in aux hp hs 0 (find hp (histogram(hs)))
  *)
+
 
 (* Écrire ici vos tests *)
 
@@ -445,33 +464,27 @@ let goodstein_hydra_time = Node[Node []; Node []; Node [Node []; Node []]; Node 
 
 (* Extension random *)
 
-let random_nodes sizereq=
-  let rec aux acc s rand =
-    if(s>3) then if((Random.bool()) && (s>(rand+1)) && (rand>2)) then aux ((aux [] rand ((Random.int(rand-1))+1))::acc) (s-rand) ((Random.int(s-rand-1))+1) else aux (Node[]::acc) (s-1) ((Random.int(s-2))+1) else Node(acc)
-  in aux [] sizereq ((Random.int(sizereq-1))+1);;
 
-(*let _=show_hydra(random_nodes 30);;*)
-(*let _=size (random_nodes 30);;*)
-
+(*prend en argument un entier et renvoie une hydre avec approximativement le même nombre de noeuds *)                               
 let random_nodes_new sizereq=
   let rec aux acc s rand =
     if(s>1) then match rand with
-      |0->if(s>3) then aux (Node[]::acc) (s-1) ((Random.int(s-1))+1) else aux (Node[]::acc) (s-2) 0
-      |1->if(s>4) then aux (Node[Node[]]::acc) (s-2) ((Random.int(s-2))+1) else aux (Node[Node[]]::acc) (s-3) 0
-      |_->if (s>(rand+1)) then aux ((aux [] rand ((Random.int(rand))+1))::acc) (s-rand) ((Random.int(s-rand))+1) else aux ((aux [] rand ((Random.int(rand))+1))::acc) (s-rand) 0
+      |0-> aux (Node[]::acc) (s-1) ((Random.int(s-1))+1)
+      |_->if (s>(rand)) then aux ((aux [] rand ((Random.int(rand))+1))::acc) (s-rand) ((Random.int(s-rand))+1) else aux ((aux [] rand ((Random.int(rand))+1))::acc) (s-rand) 0
     else Node(acc)
-  in aux [] sizereq ((Random.int(sizereq))+1);;
+  in aux [] sizereq ((Random.int(sizereq)));;
 
-(*let _=show_hydra(random_nodes 30);;
-  let _=size (random_nodes_new 30);;*)
-(*let _=show_hydra (random_nodes_new 10);;
+(*petite variante où la hauteur max est donnée en argument*)
+let random_hydra_new sizereq height=
+  let rec aux acc s rand h =
+    if((s>1)&&(height>h)) then match rand with
+      |0-> aux (Node[]::acc) (s-1) (Random.int(s-1)) h
+      |_-> aux ((aux [] rand (Random.int(rand)) (h+1))::acc) (s-rand) (Random.int(s-rand)) (h+1)
+    else Node(acc)
+  in aux [] sizereq (Random.int(sizereq)) 0;;
+
+let _=show_hydra (random_hydra_new 20 5);;
+let _=size (random_hydra_new 20 5);;
+let _=height (random_hydra_new 20 5);;
 
 
-
-let check_path =
-  let aux h= [(random_strat h),(h),(size h)]
-  in aux (random_nodes_new 20)
-
-let _=check_path;;
-
-*)
