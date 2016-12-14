@@ -110,8 +110,8 @@ let hydra_edges : hydra -> (int * int) list = fun h ->
         | [] -> aux t' next acc)
     | [] -> acc
   in List.rev (aux [(h,0)] 1 [])
-                    
-                                      
+
+
 (*
    Affiche une hydre h.
    Prérequis : la fonction hydra_edges doit avoir été écrite.
@@ -352,10 +352,12 @@ let boum : hydra_strat = function (Time t) ->
 
 type genre_de_bataille = Battle_kind of replication_fun * hercules_strat * hydra_strat
 
+
 let genre_sco = (Battle_kind(shallow_replication, closest_to_ground_strat, original_hydra_strat))
 let genre_dco = (Battle_kind(deep_replication, closest_to_ground_strat, original_hydra_strat))
 let genre_sho = (Battle_kind(shallow_replication, highest_head_strat, original_hydra_strat))
 let genre_dho = (Battle_kind(deep_replication, highest_head_strat, original_hydra_strat))
+let genre_classique = (Battle_kind(shallow_replication, leftmost_head_strat, original_hydra_strat))
 
 (*  Le score final d'une bataille *)
 type result =
@@ -373,7 +375,6 @@ let simulation : genre_de_bataille -> hydra -> time -> result =
         | Node [] -> Hercules_wins t
         | _ -> aux (replication (hercules_strat h) h (hydra_strat t)) (next_time t)
     in aux initial_hydra (Time(0))
-
 
 (*
    Écrire une fonction make_trace telle que make_trace measure bat h_init (Time t) donne la suite
@@ -439,6 +440,8 @@ test_highest_head_strat;;
 
 let test_closest_to_ground_strat =(check_hercules_strategy closest_to_ground_strat example_hydra) && (check_hercules_strategy closest_to_ground_strat goodstein_hydra);;
 test_closest_to_ground_strat;;
+
+let goodstein_hydra_time = Node[Node []; Node []; Node [Node []; Node []]; Node [Node []; Node []];Node [Node []; Node []]]
 
 (* Extension random *)
 
