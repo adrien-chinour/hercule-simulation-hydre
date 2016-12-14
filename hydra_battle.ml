@@ -3,6 +3,8 @@
 
 let the_msg = "ouah, le bug!"
 
+let the_debug = "C'est là !"
+
 (* Une hydre est représentée sous la forme d'un arbre enraciné dont les noeuds peuvent avoir un nombre quelconque mais néanmoins fini de filles. *)
 
 type hydra = Node of hydra list
@@ -60,10 +62,11 @@ let example_deep_two_copies =
 (* Les hydres pouvant être assez grosses, il est utile de fournir quelques mesures  *)
 
 (* Écrire une fonction donnant la taille d'une hydre (nombre total de noeuds) *)
-let rec size : hydra -> int = fun h ->
-  match h with
-  | Node [] -> 1
-  | Node (x::h') -> size x + size (Node h')
+let size : hydra -> int = fun h ->
+  let rec aux h acc = match h with
+    | Node [] -> acc
+    | _ -> aux (Node (les_filles_des_filles h)) (List.length(les_filles h) + acc)
+  in aux h 1
 
 (* Écrire une fonction donnant la hauteur d'une hydre (longueur maximale d'un  chemin partant du pied) *)
 let height : hydra -> int = fun h ->
@@ -90,34 +93,25 @@ let histogram_heads : hydra -> int list = fun h ->
 (*
    Écrire une fonction qui retourne une liste triée d'arêtes de l'hydre, avec
    les contraintes décrites dans le sujet.
-*)
-let tuple_hydra_int : hydra -> (hydra * int) list = fun h ->
-  let rec aux l h h' k =
-    match les_filles h' with
-    | [] ->
-      if les_filles_des_filles h = []
-      then l
-      else aux l (Node (les_filles_des_filles h)) (Node (les_filles_des_filles h)) k
-    | (x::t) ->
-      if is_head x
-      then aux l h (Node t) (k + 1)
-      else aux (l@[(x,k)]) h (Node t) (k + 1)
-  in aux [] h h 1
-
+ *)
+let rec next_hydra : (hydra * int) list -> int -> hydra = fun l n ->
+  match l with
+  | (h,k)::l' -> if n = 0 then h else next_hydra l' (n - 1)
+  | [] -> failwith "erreur in next_hydra"
+             
 let hydra_edges : hydra -> (int * int) list = fun h ->
-  let rec aux h h' l next k acc =
-    match les_filles h with
-    | [] ->
-      if les_filles_des_filles h' = []
-      then acc
-      else (
-        match l with
-        | ((x,y)::l') -> aux x x l' next y acc
-        | [] -> acc
-      )
-    | (x::y) -> aux (Node y) h' l (next + 1) k ((k,next)::acc)
-  in List.rev(aux h h (tuple_hydra_int h) 1 0 [])
-
+  let rec aux : (hydra * int) list -> int -> (int * int) list -> (int * int) list = fun t next acc ->
+    match t with
+    | (h,k)::t' ->
+       (match les_filles h with
+        | a::l -> if is_head a
+                  then aux ((Node l,k)::t') (next + 1) ((k,next)::acc)
+                  else aux ((Node l,k)::((a,next)::t')) (next + 1) ((k,next)::acc)
+        | [] -> aux t' next acc)
+    | [] -> acc
+  in List.rev (aux [(h,0)] 1 [])
+                    
+                                      
 (*
    Affiche une hydre h.
    Prérequis : la fonction hydra_edges doit avoir été écrite.
@@ -190,7 +184,7 @@ let rec remove_head i hs =
   match i,hs with
   | 0,(Node []) ::hs' -> hs'
   | i, h::hs' when i> 0 -> h :: remove_head (i-1) hs'
-  |  _,_  -> failwith the_msg
+  |  _,_  -> failwith "erreur in remove_head"
 
 (* Un tour de base :
    - Hercule coupe une tête de l'Hydre h donnée par le chemin p.
@@ -204,25 +198,25 @@ let rec deep_replication : replication_fun = fun  p h n ->
   match p,h with
     [i], Node l -> Node (remove_head i l)
   | (_::_), Node l -> Node (deep_replication_list p l n)
-  | _,_ -> failwith the_msg
+  | _,_ -> failwith "erreur in deep_replication"
 and deep_replication_list p l n =
   match p,l with
     0::p', h::lh -> repeat_concat (1+n) (deep_replication p' h n) lh
   | i::p', h::lh when i> 0 -> h :: deep_replication_list (i-1::p') lh n
-  | _,_ -> failwith the_msg
+  | _,_ -> failwith "erreur in deep_replication_list"
 
 (* Version en surface *)
-let rec shallow_replication : replication_fun = fun p h  n ->
+let rec shallow_replication : replication_fun = fun p h n ->
   match p,h with
     [i], Node l -> Node (remove_head i l)
   | (_::_), Node l -> Node (shallow_replication_list p l n)
-  | _,_ -> failwith the_msg
+  | _,_ -> failwith "erreur in shallow_replication"
 and shallow_replication_list p l n =
   match p,l with
     [0;i], Node l :: lh -> repeat_concat (1+n) (Node (remove_head  i l)) lh
   | 0::p',  h::lh -> shallow_replication p' h n :: lh
   | i::p', h::lh when i> 0 -> h :: shallow_replication_list (i-1::p') lh n
-  | _,_ -> failwith the_msg
+  | _,_ -> failwith "erreur in shallow_replication_list"
 
 (* Les stratégies: Hercule et l'Hydre suivent chacun une stratégie *)
 
@@ -247,7 +241,7 @@ let rec sub_hydra : path -> hydra -> hydra = fun path h ->
 
 (* Écrire la fonction suivante qui teste si une stratégie choisit bien une tête  *)
 let check_hercules_strategy : hercules_strat -> hydra -> bool = fun strat  h  ->
-  (sub_hydra (strat h) h = head)
+  (sub_hydra (strat h) h = (Node []))
 
 (* Écrire la stratégie choisissant la tête la plus à gauche *)
 let leftmost_head_strat : hercules_strat = fun  h  ->
@@ -278,7 +272,7 @@ La propriété est vraie au premier rang, est héréditaire et la fonction rempl
 complexité: O(n) car la fonction fait un parcours complet des tête à gauche pour n têtes*)
 
 (* Fonction utile pour stratégie tête de hauteur max / min *)
-let path_from : int -> hydra -> int list = fun n h ->
+let edges_from : int -> hydra -> int list = fun n h ->
   let rec aux l acc path =
     if acc = 0
     then path
@@ -301,25 +295,28 @@ let dir_from_path : int list -> hydra -> path = fun l h->
       then acc
       else aux (List.tl l) (((List.hd y) - (first_fille x h))::acc)
     | [] -> acc
-  in aux l []
+  in List.rev (aux l [])
 
-(* Écrire la stratégie choisissant une tête de hauteur maximale *)
-let highest_head_strat : hercules_strat = fun h -> (List.rev (dir_from_path (path_from ((size h) - 1) h) h))
-
-(* Écrire une stratégie visant à choisir une tête le plus près du sol possible *)
-let closest_to_ground_strat : hercules_strat = fun h ->
-  let rec aux acc l =
+let first_head : hydra -> int = fun h ->
+  let rec aux l acc =
     match l with
-    | [] -> acc
-    | ((x,y)::l') -> if y = acc then aux (acc + 1) l' else acc
-  in List.rev (dir_from_path (path_from (aux 1 (tuple_hydra_int h)) h) h)
+    | (a,b)::l' -> aux l' (b::(List.filter (fun x -> x != a) acc))
+    | [] -> List.hd (List.rev acc)
+  in aux (hydra_edges h) []
+                    
+(* Écrire la stratégie choisissant une tête de hauteur maximale *)
+let highest_head_strat : hercules_strat = fun h -> dir_from_path (edges_from ((size h) - 1) h) h
+
+                                                     
+(* Écrire une stratégie visant à choisir une tête le plus près du sol possible *)
+let closest_to_ground_strat : hercules_strat = fun h -> dir_from_path (edges_from (first_head h) h) h
 
 
 (* En apprenant à utiliser la bibliothèque Random, écrire une stratégie pour choisir une tête au hasard *)
 
 let random_strat : hercules_strat = fun h ->
   let rec aux h acc dir= match h with
-    |Node [] -> acc
+    |Node [] -> List.rev acc
     |_-> if ((List.length(les_filles(List.nth (les_filles h) dir ))) > 2) then aux (List.nth (les_filles h) dir) (dir::acc) (Random.int (List.length(les_filles(List.nth (les_filles h) dir )))) else  aux (List.nth (les_filles h) dir) (dir::acc) 0
   in aux h [] (Random.int (List.length(les_filles h)))
 
@@ -327,6 +324,12 @@ let random_strat : hercules_strat = fun h ->
 (* Étant donnée une date, l'Hydre peut calculer un nombre de réplications >= 1 *)
 
 type time = Time of int
+                      
+let next_time t = match t with Time(n) -> Time (n + 1)
+
+let t10 = Time(10)
+let t100 = Time(100)
+let t1000 = Time(1000)
 
 type hydra_strat =  time -> int
 
@@ -335,6 +338,8 @@ let check_hydra_strategy : hydra_strat -> time -> bool = fun st t -> st t >= 1
 (* Une stratégie classique (celle de la vidéo): à chaque tour, le nombre de réplications est incrémenté. *)
 
 let original_hydra_strat : hydra_strat = function Time  t -> t + 1
+
+let simple_hydra_strat : hydra_strat = function Time t -> t
 
 (* Une stratégie plus amusante : attention à l'explosion de pile ! *)
 
@@ -347,6 +352,11 @@ let boum : hydra_strat = function (Time t) ->
 
 type genre_de_bataille = Battle_kind of replication_fun * hercules_strat * hydra_strat
 
+let genre_sco = (Battle_kind(shallow_replication, closest_to_ground_strat, original_hydra_strat))
+let genre_dco = (Battle_kind(deep_replication, closest_to_ground_strat, original_hydra_strat))
+let genre_sho = (Battle_kind(shallow_replication, highest_head_strat, original_hydra_strat))
+let genre_dho = (Battle_kind(deep_replication, highest_head_strat, original_hydra_strat))
+
 (*  Le score final d'une bataille *)
 type result =
     Hercules_wins of time       (* Nombre de tours effectués *)
@@ -355,7 +365,15 @@ type result =
 (* Écrire la fonction de simulation *)
 let simulation : genre_de_bataille -> hydra -> time -> result =
   fun (Battle_kind(replication,hercules_strat, hydra_strat)) initial_hydra (Time(duration)) ->
-  failwith "A écrire"
+    let rec aux h t =
+      if t = (Time(duration))
+      then Hercules_gives_up h
+      else
+        match h with
+        | Node [] -> Hercules_wins t
+        | _ -> aux (replication (hercules_strat h) h (hydra_strat t)) (next_time t)
+    in aux initial_hydra (Time(0))
+
 
 (*
    Écrire une fonction make_trace telle que make_trace measure bat h_init (Time t) donne la suite
@@ -366,7 +384,14 @@ let simulation : genre_de_bataille -> hydra -> time -> result =
 
 let make_trace : (hydra -> 'a) -> genre_de_bataille -> hydra -> time -> 'a list =
   fun measure (Battle_kind(replication,hercules_strat, hydra_strat)) initial_hydra (Time duration) ->
-  failwith "A écrire"
+    let rec aux h t acc =
+      if t = (Time(duration))
+      then acc
+      else
+        match h with
+        | Node [] -> (measure h)::acc
+        | _ -> aux (replication (hercules_strat h) h (hydra_strat t)) (next_time t) ((measure h)::acc)
+    in aux initial_hydra (Time(0)) []
 
 
 (* Extensions *)
@@ -376,16 +401,16 @@ let make_trace : (hydra -> 'a) -> genre_de_bataille -> hydra -> time -> 'a list 
 (* comparaison de 2 hydres *)
 
 (* fonction annexe qui compare 2 histogrammes *)
+
+
 let rec check_histogram l1 l2 =
-  if (List.length l1) = (List.length l2)
-  then
-    if (l1 = [])
-    then true
-    else
-      if (List.hd l1) = (List.hd l2)
-      then check_histogram (List.tl l1) (List.tl l2)
-      else false
-  else false                           
+  match l1 with
+  |[]->(match l2 with
+    |[]->true
+    |_->false)
+  |x::tl1->(match l2 with
+    |[]->false
+    |y::tl2->if (x=y) then check_histogram tl1 tl2 else false)
 
 (* ATTENTION: COMPARISON A FINIR (extension n°2)
 let comparison h1 h2 =
@@ -394,7 +419,7 @@ let comparison h1 h2 =
     | x::h1' -> aux (List.nth (les_filles h1) x) (List.nth (les_filles h2) x) acc
   in aux x y acc
  *)
-         
+
 (* Écrire ici vos tests *)
 
 let test_size = ((size example_hydra) = 10) && (size baby_hydra = 2);;
@@ -415,11 +440,35 @@ test_highest_head_strat;;
 let test_closest_to_ground_strat =(check_hercules_strategy closest_to_ground_strat example_hydra) && (check_hercules_strategy closest_to_ground_strat goodstein_hydra);;
 test_closest_to_ground_strat;;
 
+(* Extension random *)
 
 let random_nodes sizereq=
   let rec aux acc s rand =
     if(s>3) then if((Random.bool()) && (s>(rand+1)) && (rand>2)) then aux ((aux [] rand ((Random.int(rand-1))+1))::acc) (s-rand) ((Random.int(s-rand-1))+1) else aux (Node[]::acc) (s-1) ((Random.int(s-2))+1) else Node(acc)
   in aux [] sizereq ((Random.int(sizereq-1))+1);;
 
-let _=show_hydra(random_nodes 30);;
-let _=size (random_nodes 30);;
+(*let _=show_hydra(random_nodes 30);;*)
+(*let _=size (random_nodes 30);;*)
+
+let random_nodes_new sizereq=
+  let rec aux acc s rand =
+    if(s>1) then match rand with
+      |0->if(s>3) then aux (Node[]::acc) (s-1) ((Random.int(s-1))+1) else aux (Node[]::acc) (s-2) 0
+      |1->if(s>4) then aux (Node[Node[]]::acc) (s-2) ((Random.int(s-2))+1) else aux (Node[Node[]]::acc) (s-3) 0
+      |_->if (s>(rand+1)) then aux ((aux [] rand ((Random.int(rand))+1))::acc) (s-rand) ((Random.int(s-rand))+1) else aux ((aux [] rand ((Random.int(rand))+1))::acc) (s-rand) 0
+    else Node(acc)
+  in aux [] sizereq ((Random.int(sizereq))+1);;
+
+(*let _=show_hydra(random_nodes 30);;
+  let _=size (random_nodes_new 30);;*)
+(*let _=show_hydra (random_nodes_new 10);;
+
+
+
+let check_path =
+  let aux h= [(random_strat h),(h),(size h)]
+  in aux (random_nodes_new 20)
+
+let _=check_path;;
+
+*)
