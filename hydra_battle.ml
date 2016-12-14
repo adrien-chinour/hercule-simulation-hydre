@@ -245,7 +245,7 @@ let rec sub_hydra : path -> hydra -> hydra = fun path h ->
 
 (* Écrire la fonction suivante qui teste si une stratégie choisit bien une tête  *)
 let check_hercules_strategy : hercules_strat -> hydra -> bool = fun strat  h  ->
-  (sub_hydra (strat h) h = head)
+  (sub_hydra (strat h) h = (Node []))
 
 (* Écrire la stratégie choisissant la tête la plus à gauche *)
 let leftmost_head_strat : hercules_strat = fun  h  ->
@@ -317,7 +317,7 @@ let closest_to_ground_strat : hercules_strat = fun h ->
 
 let random_strat : hercules_strat = fun h ->
   let rec aux h acc dir= match h with
-    |Node [] -> acc
+    |Node [] -> List.rev acc
     |_-> if ((List.length(les_filles(List.nth (les_filles h) dir ))) > 2) then aux (List.nth (les_filles h) dir) (dir::acc) (Random.int (List.length(les_filles(List.nth (les_filles h) dir )))) else  aux (List.nth (les_filles h) dir) (dir::acc) 0
   in aux h [] (Random.int (List.length(les_filles h)))
 
@@ -378,6 +378,33 @@ let make_trace : (hydra -> 'a) -> genre_de_bataille -> hydra -> time -> 'a list 
   fun measure (Battle_kind(replication,hercules_strat, hydra_strat)) initial_hydra (Time duration) ->
   failwith "A écrire"
 
+
+(* Extensions *)
+
+(* prouver qu'une stratégie d'hercule marche bien *)
+
+(* comparaison de 2 hydres *)
+
+(* fonction annexe qui compare 2 histogrammes *)
+let rec check_histogram l1 l2 =
+  if (List.length l1) = (List.length l2)
+  then
+    if (l1 = [])
+    then true
+    else
+      if (List.hd l1) = (List.hd l2)
+      then check_histogram (List.tl l1) (List.tl l2)
+      else false
+  else false
+
+(* ATTENTION: COMPARISON A FINIR (extension n°2)
+let comparison h1 h2 =
+  let rec aux h1 h2 acc = match h1 with
+    | Node [] -> acc
+    | x::h1' -> aux (List.nth (les_filles h1) x) (List.nth (les_filles h2) x) acc
+  in aux x y acc
+ *)
+
 (* Écrire ici vos tests *)
 
 let test_size = ((size example_hydra) = 10) && (size baby_hydra = 2);;
@@ -398,4 +425,37 @@ test_highest_head_strat;;
 let test_closest_to_ground_strat =(check_hercules_strategy closest_to_ground_strat example_hydra) && (check_hercules_strategy closest_to_ground_strat goodstein_hydra);;
 test_closest_to_ground_strat;;
 
+
 let goodstein_hydra_time = Node[Node []; Node []; Node [Node []; Node []]; Node [Node []; Node []];Node [Node []; Node []]]
+
+(* Extension random *)
+
+let random_nodes sizereq=
+  let rec aux acc s rand =
+    if(s>3) then if((Random.bool()) && (s>(rand+1)) && (rand>2)) then aux ((aux [] rand ((Random.int(rand-1))+1))::acc) (s-rand) ((Random.int(s-rand-1))+1) else aux (Node[]::acc) (s-1) ((Random.int(s-2))+1) else Node(acc)
+  in aux [] sizereq ((Random.int(sizereq-1))+1);;
+
+(*let _=show_hydra(random_nodes 30);;*)
+(*let _=size (random_nodes 30);;*)
+
+let random_nodes_new sizereq=
+  let rec aux acc s rand =
+    if(s>1) then match rand with
+      |0->if(s>3) then aux (Node[]::acc) (s-1) ((Random.int(s-1))+1) else aux (Node[]::acc) (s-2) 0
+      |1->if(s>4) then aux (Node[Node[]]::acc) (s-2) ((Random.int(s-2))+1) else aux (Node[Node[]]::acc) (s-3) 0
+      |_->if (s>(rand+1)) then aux ((aux [] rand ((Random.int(rand))+1))::acc) (s-rand) ((Random.int(s-rand))+1) else aux ((aux [] rand ((Random.int(rand))+1))::acc) (s-rand) 0
+    else Node(acc)
+  in aux [] sizereq ((Random.int(sizereq))+1);;
+
+(*let _=show_hydra(random_nodes 30);;*)
+(*let _=size (random_nodes_new 30);;*)
+(*let _=show_hydra (random_nodes_new 10);;*)
+
+
+
+(*let check_path =
+  let aux h= [(check_hercules_strategy random_strat h),(h),(size h)]
+  in aux (random_nodes_new 20)
+
+let _=check_path;;
+*)
