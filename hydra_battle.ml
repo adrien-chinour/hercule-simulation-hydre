@@ -3,6 +3,8 @@
 
 let the_msg = "ouah, le bug!"
 
+let the_debug = "C'est là !"
+
 (* Une hydre est représentée sous la forme d'un arbre enraciné dont les noeuds peuvent avoir un nombre quelconque mais néanmoins fini de filles. *)
 
 type hydra = Node of hydra list
@@ -60,10 +62,11 @@ let example_deep_two_copies =
 (* Les hydres pouvant être assez grosses, il est utile de fournir quelques mesures  *)
 
 (* Écrire une fonction donnant la taille d'une hydre (nombre total de noeuds) *)
-let rec size : hydra -> int = fun h ->
-  match h with
-  | Node [] -> 1
-  | Node (x::h') -> size x + size (Node h')
+let size : hydra -> int = fun h ->
+  let rec aux h acc = match h with
+    | Node [] -> acc
+    | _ -> aux (Node (les_filles_des_filles h)) (List.length(les_filles h) + acc)
+  in aux h 1
 
 (* Écrire une fonction donnant la hauteur d'une hydre (longueur maximale d'un  chemin partant du pied) *)
 let height : hydra -> int = fun h ->
@@ -105,18 +108,13 @@ let tuple_hydra_int : hydra -> (hydra * int) list = fun h ->
   in aux [] h h 1
 
 let hydra_edges : hydra -> (int * int) list = fun h ->
-  let rec aux h h' l next k acc =
-    match les_filles h with
-    | [] ->
-      if les_filles_des_filles h' = []
-      then acc
-      else (
-        match l with
-        | ((x,y)::l') -> aux x x l' next y acc
-        | [] -> acc
-      )
-    | (x::y) -> aux (Node y) h' l (next + 1) k ((k,next)::acc)
-  in List.rev(aux h h (tuple_hydra_int h) 1 0 [])
+  let rec aux h' l acc next k =
+    match les_filles h' with
+    | (x::y) -> aux (Node y) l ((k,next)::acc) (next + 1) k
+    | [] -> match l with
+      | ((h,n)::y) -> aux h y acc next n
+      | [] -> acc
+  in List.rev (  aux h (tuple_hydra_int h) [] 1 0 )
 
 (*
    Affiche une hydre h.
@@ -212,7 +210,7 @@ and deep_replication_list p l n =
   | _,_ -> failwith the_msg
 
 (* Version en surface *)
-let rec shallow_replication : replication_fun = fun p h  n ->
+let rec shallow_replication : replication_fun = fun p h n ->
   match p,h with
     [i], Node l -> Node (remove_head i l)
   | (_::_), Node l -> Node (shallow_replication_list p l n)
@@ -327,6 +325,7 @@ let random_strat : hercules_strat = fun h ->
 (* Étant donnée une date, l'Hydre peut calculer un nombre de réplications >= 1 *)
 
 type time = Time of int
+let next_time t = match t with Time(n) -> Time (n + 1)
 
 type hydra_strat =  time -> int
 
@@ -335,6 +334,8 @@ let check_hydra_strategy : hydra_strat -> time -> bool = fun st t -> st t >= 1
 (* Une stratégie classique (celle de la vidéo): à chaque tour, le nombre de réplications est incrémenté. *)
 
 let original_hydra_strat : hydra_strat = function Time  t -> t + 1
+
+let simple_hydra_strat : hydra_strat = function Time t -> t
 
 (* Une stratégie plus amusante : attention à l'explosion de pile ! *)
 
@@ -347,6 +348,8 @@ let boum : hydra_strat = function (Time t) ->
 
 type genre_de_bataille = Battle_kind of replication_fun * hercules_strat * hydra_strat
 
+let genre_classique = (Battle_kind(shallow_replication, leftmost_head_strat, original_hydra_strat))
+
 (*  Le score final d'une bataille *)
 type result =
     Hercules_wins of time       (* Nombre de tours effectués *)
@@ -355,7 +358,14 @@ type result =
 (* Écrire la fonction de simulation *)
 let simulation : genre_de_bataille -> hydra -> time -> result =
   fun (Battle_kind(replication,hercules_strat, hydra_strat)) initial_hydra (Time(duration)) ->
-  failwith "A écrire"
+    let rec aux h t =
+      if t = (Time(duration))
+      then Hercules_gives_up h
+      else
+        match h with
+        | Node [] -> Hercules_wins t
+        | _ -> aux (replication (hercules_strat h) h (hydra_strat t)) (next_time t)
+    in aux initial_hydra (Time(0))
 
 (*
    Écrire une fonction make_trace telle que make_trace measure bat h_init (Time t) donne la suite
@@ -387,3 +397,5 @@ test_highest_head_strat;;
 
 let test_closest_to_ground_strat =(check_hercules_strategy closest_to_ground_strat example_hydra) && (check_hercules_strategy closest_to_ground_strat goodstein_hydra);;
 test_closest_to_ground_strat;;
+
+let goodstein_hydra_time = Node[Node []; Node []; Node [Node []; Node []]; Node [Node []; Node []];Node [Node []; Node []]]
